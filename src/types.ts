@@ -7,6 +7,7 @@ interface InitPayloadArgs {
 interface BeforeProcessPayloadArgs<PayloadType> {
     subscriptions: any[];
     payload: PayloadType;
+    channel: string;
 }
 
 interface ProcessPayloadArgs<PayloadType> {

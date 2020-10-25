@@ -127,7 +127,7 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
         for await (const payload of pubsubAsyncIterator) {
             const subscriptions = this.getActiveSubscriptions(channel);
 
-            const context = await this.beforeProcessPayloads({ payload, subscriptions });
+            const context = await this.beforeProcessPayloads({ payload, subscriptions, channel });
 
             subscriptions.forEach(subscription => {
                 this.processPayloads({
