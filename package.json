@@ -1,0 +1,20 @@
+{
+  "name": "graphql-subscription-manager",
+  "version": "1.0.0",
+  "description": "A manager class for extending and coordinating the functionality of the basic GraphQL subscription interface",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "GraphQL",
+    "subscriptions",
+    "PubSub",
+    "AsyncIterators"
+  ],
+  "author": "William M.",
+  "license": "MIT",
+  "dependencies": {
+    "graphql-subscriptions": "^1.1.0"
+  }
+}
