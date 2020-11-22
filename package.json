@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "A manager class for extending and coordinating the functionality of the basic GraphQL subscription interface",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "prettier --write \"src/**.ts\" && tslint -p tsconfig.json",
+    "build": "tsc",
+    "prepack": "npm run clean && npm run build"
   },
   "keywords": [
     "GraphQL",
@@ -17,5 +21,12 @@
   "dependencies": {
     "graphql-subscriptions": "^1.1.0",
     "lodash.debounce": "^4.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.9",
+    "prettier": "^2.2.0",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^4.1.2"
   }
 }

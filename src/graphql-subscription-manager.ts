@@ -167,11 +167,11 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
         this.dispatchPayloads(subscriptionId, initPayloads);
       })
 
-    return this.buildBatchedAsyncIteratorForSubscription(subscriptionId);
+    return this.buildBatchedAsyncIteratorForSubscription(subscriptionId, batchInterval);
   }
 
-  private buildBatchedAsyncIteratorForSubscription(subscriptionId: number): AsyncIterableIterator<ResultType[]> {
-    const simplex = new BatchedSimplex<ResultType>();
+  private buildBatchedAsyncIteratorForSubscription(subscriptionId: number, batchInterval: number): AsyncIterableIterator<ResultType[]> {
+    const simplex = new BatchedSimplex<ResultType>({ batchInterval });
     this.simplexMap[subscriptionId] = simplex;
 
     const cleanupSubscription = async () => await this.cleanupSubscription(subscriptionId);
