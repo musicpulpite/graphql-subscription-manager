@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 
 interface SimplexOptions {
-    batchInterval?: number;
+  batchInterval?: number;
 }
 
 export default class BatchedSimplex<T> {
@@ -19,17 +19,21 @@ export default class BatchedSimplex<T> {
 
     this.options = options;
 
-    this.flushQueue = debounce(() => {
+    this.flushQueue = debounce(
+      () => {
         if (this.running) {
-            if (this.pullQueue.length !== 0) {
-                const batchedPayloads  = this.pushQueue.slice();
-                this.pushQueue = [];
+          if (this.pullQueue.length !== 0) {
+            const batchedPayloads = this.pushQueue.slice();
+            this.pushQueue = [];
 
-                const { resolve } = this.pullQueue.shift();
-                resolve(batchedPayloads); 
-            }
+            const { resolve } = this.pullQueue.shift();
+            resolve(batchedPayloads);
+          }
         }
-    }, options.batchInterval, { maxWait: options.batchInterval, trailing: true, leading: false });
+      },
+      options.batchInterval,
+      { maxWait: options.batchInterval, trailing: true, leading: false }
+    );
   }
 
   public async read(): Promise<T | T[]> {

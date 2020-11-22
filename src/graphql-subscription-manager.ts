@@ -3,25 +3,33 @@ import { PubSubEngine } from 'graphql-subscriptions';
 import Simplex from './simplex';
 import BatchedSimplex from './batched-simplex';
 
-import { InitPayloadsFunc, BeforeProcessPayloadsFunc, ProcessPayloadsFunc, Nullable } from './types';
+import {
+  InitPayloadsFunc,
+  BeforeProcessPayloadsFunc,
+  ProcessPayloadsFunc,
+  Nullable
+} from './types';
 
 interface PayloadProcessFunctions<PayloadType, ResultType> {
-    initPayloads?: InitPayloadsFunc<ResultType>,
-    beforeProcessPayloads?: BeforeProcessPayloadsFunc<PayloadType>,
-    processPayloads: ProcessPayloadsFunc<PayloadType, ResultType>
-};
+  initPayloads?: InitPayloadsFunc<ResultType>;
+  beforeProcessPayloads?: BeforeProcessPayloadsFunc<PayloadType>;
+  processPayloads: ProcessPayloadsFunc<PayloadType, ResultType>;
+}
 
 const emptyFunc = async () => null;
 
 type SubscriptionManagerOptions = {
   batchInterval?: number;
-}
+};
 
 export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
   private pubsub: PubSubEngine;
-  private initPayloads: PayloadProcessFunctions<PayloadType, ResultType>["initPayloads"];
-  private beforeProcessPayloads: PayloadProcessFunctions<PayloadType, ResultType>["beforeProcessPayloads"];
-  private processPayloads: PayloadProcessFunctions<PayloadType, ResultType>["processPayloads"];
+  private initPayloads: PayloadProcessFunctions<PayloadType, ResultType>['initPayloads'];
+  private beforeProcessPayloads: PayloadProcessFunctions<
+    PayloadType,
+    ResultType
+  >['beforeProcessPayloads'];
+  private processPayloads: PayloadProcessFunctions<PayloadType, ResultType>['processPayloads'];
   private options: SubscriptionManagerOptions;
 
   private pubSubIteratorMap: { [channel: string]: AsyncIterator<PayloadType> };
@@ -32,12 +40,20 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     [subscriptionId: string]: string[];
   };
   private simplexMap: {
-      [subscriptionId: string]: Simplex<ResultType> | BatchedSimplex<ResultType>
+    [subscriptionId: string]: Simplex<ResultType> | BatchedSimplex<ResultType>;
   };
 
   private subscriptionId: number;
 
-  constructor(pubsub: PubSubEngine, { initPayloads, beforeProcessPayloads, processPayloads }: PayloadProcessFunctions<PayloadType, ResultType>, options?: SubscriptionManagerOptions) {
+  constructor(
+    pubsub: PubSubEngine,
+    {
+      initPayloads,
+      beforeProcessPayloads,
+      processPayloads
+    }: PayloadProcessFunctions<PayloadType, ResultType>,
+    options?: SubscriptionManagerOptions
+  ) {
     this.pubsub = pubsub;
     this.initPayloads = initPayloads || emptyFunc;
     this.beforeProcessPayloads = beforeProcessPayloads || emptyFunc;
@@ -53,33 +69,41 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
   }
 
   public getActiveSubscriptions(channel?: string): any[] {
-      if (channel) {
-        return [...(this.activeSubsMap[channel] || [])];
-      }
+    if (channel) {
+      return [...(this.activeSubsMap[channel] || [])];
+    }
 
-      return Object.values(this.activeSubsMap).reduce((activeSubscriptions, subscriptionsForChannel) => {
-        subscriptionsForChannel.forEach(subscription => {
+    return Object.values(this.activeSubsMap).reduce(
+      (activeSubscriptions, subscriptionsForChannel) => {
+        subscriptionsForChannel.forEach((subscription) => {
           if (!activeSubscriptions.includes(subscription)) {
             activeSubscriptions.push(subscription);
           }
         });
 
         return activeSubscriptions;
-      }, []);
+      },
+      []
+    );
   }
 
-  public getAsyncIteratorForSubscription(subscription: any, channels: string | string[]): AsyncIterator<ResultType> {
+  public getAsyncIteratorForSubscription(
+    subscription: any,
+    channels: string | string[]
+  ): AsyncIterator<ResultType> {
     const subscriptionId = this.subscriptionId++;
     subscription._id = subscriptionId; // Might do some encapsulation here
 
     if (!Array.isArray(channels)) channels = [channels];
     this.subChannelsMap[subscriptionId] = channels;
 
-    channels.forEach(channel => {
+    channels.forEach((channel) => {
       if (!this.pubSubIteratorMap[channel]) {
         // Graphql-subscriptions' mistake: the asyncIterator method returns a class that implements $$asyncIterator (Symbol.asyncIterator)
         // So this cast shouldn't be necessary
-        const pubsubIterator = this.pubsub.asyncIterator<PayloadType>(channel) as AsyncIterableIterator<PayloadType>;
+        const pubsubIterator = this.pubsub.asyncIterator<PayloadType>(
+          channel
+        ) as AsyncIterableIterator<PayloadType>;
         this.pubSubIteratorMap[channel] = pubsubIterator;
         this.initializePubSubAsyncIterator(channel, pubsubIterator);
       }
@@ -92,16 +116,17 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     });
 
     this.initPayloads({
-      subscription,
-    })
-      .then(initPayloads => {
-        this.dispatchPayloads(subscriptionId, initPayloads);
-      })
+      subscription
+    }).then((initPayloads) => {
+      this.dispatchPayloads(subscriptionId, initPayloads);
+    });
 
     return this.buildAsyncIteratorForSubscription(subscriptionId);
   }
 
-  private buildAsyncIteratorForSubscription(subscriptionId: number): AsyncIterableIterator<ResultType> {
+  private buildAsyncIteratorForSubscription(
+    subscriptionId: number
+  ): AsyncIterableIterator<ResultType> {
     const simplex = new Simplex<ResultType>();
     this.simplexMap[subscriptionId] = simplex;
 
@@ -124,13 +149,17 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
       },
       [Symbol.asyncIterator](): AsyncIterator<ResultType> {
         return this;
-      },
+      }
     } as AsyncIterableIterator<ResultType>;
   }
 
   /* The identical interfaces for generating a BATCHED async iterator */
 
-  public getBatchedAsyncIteratorForSubscription(subscription: any, channels: string | string[], batchInterval?: number): AsyncIterator<ResultType[]> {
+  public getBatchedAsyncIteratorForSubscription(
+    subscription: any,
+    channels: string | string[],
+    batchInterval?: number
+  ): AsyncIterator<ResultType[]> {
     batchInterval = batchInterval || this.options?.batchInterval;
     if (typeof batchInterval !== 'number' || batchInterval <= 0) {
       throw new Error(
@@ -144,11 +173,13 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     if (!Array.isArray(channels)) channels = [channels];
     this.subChannelsMap[subscriptionId] = channels;
 
-    channels.forEach(channel => {
+    channels.forEach((channel) => {
       if (!this.pubSubIteratorMap[channel]) {
         // Graphql-subscriptions' mistake: the asyncIterator method returns a class that implements $$asyncIterator (Symbol.asyncIterator)
         // So this cast shouldn't be necessary
-        const pubsubIterator = this.pubsub.asyncIterator<PayloadType>(channel) as AsyncIterableIterator<PayloadType>;
+        const pubsubIterator = this.pubsub.asyncIterator<PayloadType>(
+          channel
+        ) as AsyncIterableIterator<PayloadType>;
         this.pubSubIteratorMap[channel] = pubsubIterator;
         this.initializePubSubAsyncIterator(channel, pubsubIterator);
       }
@@ -161,16 +192,18 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     });
 
     this.initPayloads({
-      subscription,
-    })
-      .then(initPayloads => {
-        this.dispatchPayloads(subscriptionId, initPayloads);
-      })
+      subscription
+    }).then((initPayloads) => {
+      this.dispatchPayloads(subscriptionId, initPayloads);
+    });
 
     return this.buildBatchedAsyncIteratorForSubscription(subscriptionId, batchInterval);
   }
 
-  private buildBatchedAsyncIteratorForSubscription(subscriptionId: number, batchInterval: number): AsyncIterableIterator<ResultType[]> {
+  private buildBatchedAsyncIteratorForSubscription(
+    subscriptionId: number,
+    batchInterval: number
+  ): AsyncIterableIterator<ResultType[]> {
     const simplex = new BatchedSimplex<ResultType>({ batchInterval });
     this.simplexMap[subscriptionId] = simplex;
 
@@ -193,24 +226,27 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
       },
       [Symbol.asyncIterator](): AsyncIterator<ResultType> {
         return this;
-      },
+      }
     } as AsyncIterableIterator<ResultType[]>;
   }
 
-  private async initializePubSubAsyncIterator(channel: string, pubsubAsyncIterator: AsyncIterableIterator<PayloadType>): Promise<void> {
+  private async initializePubSubAsyncIterator(
+    channel: string,
+    pubsubAsyncIterator: AsyncIterableIterator<PayloadType>
+  ): Promise<void> {
     for await (const payload of pubsubAsyncIterator) {
-        const subscriptions = this.getActiveSubscriptions(channel);
+      const subscriptions = this.getActiveSubscriptions(channel);
 
-        const context = await this.beforeProcessPayloads({ payload, subscriptions, channel });
+      const context = await this.beforeProcessPayloads({ payload, subscriptions, channel });
 
-        subscriptions.forEach(subscription => {
-            this.processPayloads({
-                payload,
-                subscription,
-                channel,
-                context
-            }).then(resultPayloads => this.dispatchPayloads(subscription._id, resultPayloads))
-        })
+      subscriptions.forEach((subscription) => {
+        this.processPayloads({
+          payload,
+          subscription,
+          channel,
+          context
+        }).then((resultPayloads) => this.dispatchPayloads(subscription._id, resultPayloads));
+      });
     }
   }
 
@@ -218,7 +254,7 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     if (!payloads) return;
     if (!Array.isArray(payloads)) payloads = [payloads];
 
-    payloads.forEach(payload => this.simplexMap[subscriptionId].write(payload));
+    payloads.forEach((payload) => this.simplexMap[subscriptionId].write(payload));
   }
 
   private async cleanupSubscription(subscriptionId: number): Promise<void> {
@@ -227,13 +263,13 @@ export default class GraphQLSubscriptionManager<PayloadType, ResultType> {
     const subscribedChannels = this.subChannelsMap[subscriptionId];
     delete this.subChannelsMap[subscriptionId];
 
-    subscribedChannels.forEach(async channel => {
+    subscribedChannels.forEach(async (channel) => {
       let idx = -1;
       // Requires downlevelIteration flag: https://mariusschulz.com/blog/downlevel-iteration-for-es3-es5-in-typescript
       for (const [i, subscription] of this.activeSubsMap[channel].entries()) {
         if (subscription._id === subscriptionId) {
-            idx = i;
-            break;
+          idx = i;
+          break;
         }
       }
 
