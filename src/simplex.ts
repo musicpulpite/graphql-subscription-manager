@@ -1,18 +1,12 @@
-interface SimplexOptions {}
-
 export default class Simplex<T> {
     private running: boolean;
     private pullQueue: { resolve: (value: T) => void; reject: (error: Error) => void }[];
     private pushQueue: T[];
-
-    private options: SimplexOptions;
   
-    constructor(options: SimplexOptions = {}) {
+    constructor() {
       this.running = true;
       this.pullQueue = [];
       this.pushQueue = [];
-
-      this.options = options;
     }
   
     public async read(): Promise<T> {
