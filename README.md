@@ -27,7 +27,7 @@ SubscriptionServer.create({
     onConnect: (payload: any, socket: WebSocket) => {
         // ...
         const subscriptionManager = new GraphQLSubscriptionManager(
-            PubSubEngine,
+            new PubSubEngine(),
             {
                 processPayloads: async ({ payload, subscription }) => {
                     // ...
