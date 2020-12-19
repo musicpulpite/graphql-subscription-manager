@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "prettier --write \"{src, test}/**.ts\" && tslint -p tsconfig.json",
+    "clean": "prettier --write \"{src,test}/**.ts\" && tslint -p tsconfig.json",
     "build": "tsc",
     "prepack": "npm run clean && npm run build"
   },
