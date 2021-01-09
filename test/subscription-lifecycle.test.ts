@@ -2,40 +2,43 @@ import GraphQLSubscriptionManager from '../src/graphql-subscription-manager';
 import MockPubSubEngine from './mock-pubsub-engine';
 
 type MockPayload = {
-    type?: string,
-    message: string
+  type?: string;
+  message: string;
 };
 
 type MockResult = {
-    subscriptionType: string,
-    message: string
+  subscriptionType: string;
+  message: string;
 };
 
 type MockSubscription = {
-    type: string
-}
+  type: string;
+};
+
+const PREPROCESSOR_TRIGGER = 'Preprocessor trigger';
+const PREPROCESSOR_MESSAGE = 'Contains data from payloads preprocessor';
 
 describe('GraphQLSubscriptionManager lifecycle', () => {
-    const mockPubSub = new MockPubSubEngine();
-    const subscriptionManager = new GraphQLSubscriptionManager<MockPayload, MockResult>(mockPubSub, {
-    initPayloads: async ({subscription}) => {
-        return {
-            subscriptionType: subscription.type,
-            message: 'Initial payloads'
-        }
+  const mockPubSub = new MockPubSubEngine();
+  const subscriptionManager = new GraphQLSubscriptionManager<MockPayload, MockResult>(mockPubSub, {
+    initPayloads: async ({ subscription }) => {
+      return {
+        subscriptionType: subscription.type,
+        message: 'Initial payloads'
+      };
     },
     beforeProcessPayloads: async ({ payload: { type } }) => {
-        if (type === 'Preprocessor trigger') {
-            return {
-                message: 'Contains data from payloads preprocessor'
-            }
-        }
+      if (type === PREPROCESSOR_TRIGGER) {
+        return {
+          message: PREPROCESSOR_MESSAGE
+        };
+      }
     },
     processPayloads: async ({ subscription, payload, context }) => {
-        return {
-            subscriptionType: subscription.type,
-            message: context?.message || payload.message // Potentially overwrite with data from payload preprocessing
-        }
+      return {
+        subscriptionType: subscription.type,
+        message: context?.message || payload.message // Potentially overwrite with data from payload preprocessing
+      };
     }
   });
 
@@ -48,24 +51,34 @@ describe('GraphQLSubscriptionManager lifecycle', () => {
     const { value, done } = await asyncIterator.next();
     expect(value.subscriptionType).toBe(type);
     expect(done).toBe(false);
-  })
+  });
 
   it('Dispatches subscription payloads triggered by a publication event', async () => {
-    const message = `Message transmitted over channel: ${channel}`;
-    await mockPubSub.publish(channel, { message });
+    const payload = { message: `Message transmitted over channel: ${channel}` };
+    await mockPubSub.publish(channel, payload);
 
     const { value, done } = await asyncIterator.next();
     expect(value.subscriptionType).toBe(type);
-    expect(value.message).toBe(message);
+    expect(value.message).toBe(payload.message);
     expect(done).toBe(false);
-  })
+  });
+
+  it('Allows for payload preprocessing and passes any values as context to the subscription processor', async () => {
+    const payload = { type: PREPROCESSOR_TRIGGER };
+    await mockPubSub.publish(channel, payload);
+
+    const { value, done } = await asyncIterator.next();
+    expect(value.subscriptionType).toBe(type);
+    expect(value.message).toBe(PREPROCESSOR_MESSAGE);
+    expect(done).toBe(false);
+  });
 
   it('Tracks subscription state and cleans up automatically after being unsubscribed from (iterator return)', async () => {
-      expect(subscriptionManager.getActiveSubscriptions().length).toBe(1);
+    expect(subscriptionManager.getActiveSubscriptions().length).toBe(1);
 
-      const { done } = await asyncIterator.return();
-      expect(done).toBe(true);
+    const { done } = await asyncIterator.return();
+    expect(done).toBe(true);
 
-      expect(subscriptionManager.getActiveSubscriptions().length).toBe(0);
-  })
+    expect(subscriptionManager.getActiveSubscriptions().length).toBe(0);
+  });
 });

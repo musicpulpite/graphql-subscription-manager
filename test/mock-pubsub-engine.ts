@@ -27,7 +27,11 @@ export default class MockPubSubEngine extends PubSubEngine {
     }
   }
 
-  public async subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number> {
+  public async subscribe(
+    triggerName: string,
+    onMessage: Function,
+    options: Object
+  ): Promise<number> {
     return new Promise((resolve) => {
       const subId = this.subId++;
 
