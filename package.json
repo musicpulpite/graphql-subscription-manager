@@ -19,7 +19,7 @@
   "author": "William M.",
   "license": "MIT",
   "dependencies": {
-    "lodash.debounce": "^4.0.8"
+    "lodash": "^4.17.20"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
@@ -27,6 +27,7 @@
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
     "@types/jest": "^26.0.19",
+    "@types/lodash": "^4.14.167",
     "@types/node": "^14.14.9",
     "babel-jest": "^26.6.3",
     "jest": "^26.6.3",

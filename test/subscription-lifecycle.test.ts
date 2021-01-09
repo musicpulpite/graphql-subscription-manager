@@ -15,6 +15,8 @@ type MockSubscription = {
   type: string;
 };
 
+const INITIAL_MESSAGE = 'Initial payloads';
+
 const PREPROCESSOR_TRIGGER = 'Preprocessor trigger';
 const PREPROCESSOR_MESSAGE = 'Contains data from payloads preprocessor';
 
@@ -24,7 +26,7 @@ describe('GraphQLSubscriptionManager lifecycle', () => {
     initPayloads: async ({ subscription }) => {
       return {
         subscriptionType: subscription.type,
-        message: 'Initial payloads'
+        message: INITIAL_MESSAGE
       };
     },
     beforeProcessPayloads: async ({ payload: { type } }) => {
@@ -44,12 +46,13 @@ describe('GraphQLSubscriptionManager lifecycle', () => {
 
   const type = 'sub1';
   const channel = 'channel1';
-  const subscription = { type };
+  const subscription: MockSubscription = { type };
   const asyncIterator = subscriptionManager.getAsyncIteratorForSubscription(subscription, channel);
 
   it('Dispatches initial payloads on the subscribe event', async () => {
     const { value, done } = await asyncIterator.next();
     expect(value.subscriptionType).toBe(type);
+    expect(value.message).toBe(INITIAL_MESSAGE);
     expect(done).toBe(false);
   });
 

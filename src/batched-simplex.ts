@@ -1,7 +1,7 @@
-import debounce from 'lodash.debounce';
+import { throttle } from 'lodash';
 
 interface SimplexOptions {
-  batchInterval?: number;
+  batchInterval: number;
 }
 
 export default class BatchedSimplex<T> {
@@ -10,7 +10,7 @@ export default class BatchedSimplex<T> {
   private pushQueue: T[];
 
   private options: SimplexOptions;
-  private flushQueue?: () => {};
+  private flushQueue?: () => void;
 
   constructor(options: SimplexOptions) {
     this.running = true;
@@ -19,7 +19,7 @@ export default class BatchedSimplex<T> {
 
     this.options = options;
 
-    this.flushQueue = debounce(
+    this.flushQueue = throttle(
       () => {
         if (this.running) {
           if (this.pullQueue.length !== 0) {
@@ -32,7 +32,7 @@ export default class BatchedSimplex<T> {
         }
       },
       options.batchInterval,
-      { maxWait: options.batchInterval, trailing: true, leading: false }
+      { trailing: true, leading: false }
     );
   }
 
@@ -43,6 +43,7 @@ export default class BatchedSimplex<T> {
       }
 
       this.pullQueue.push({ resolve, reject });
+      this.flushQueue();
     });
   }
 
