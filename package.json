@@ -19,7 +19,6 @@
   "author": "William M.",
   "license": "MIT",
   "dependencies": {
-    "graphql-subscriptions": "^1.1.0",
     "lodash.debounce": "^4.0.8"
   },
   "devDependencies": {

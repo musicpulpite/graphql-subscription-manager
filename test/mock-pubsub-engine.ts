@@ -1,4 +1,4 @@
-import { PubSubEngine } from 'graphql-subscriptions';
+import PubSubEngine from '../src/pubsub/pubsub-engine';
 
 type ListNode = {
   subId: number;
@@ -18,26 +18,20 @@ export default class MockPubSubEngine extends PubSubEngine {
     this.channels = {};
   }
 
-  public publish(triggerName: string, payload: any): Promise<void> {
-    return new Promise((resolve) => {
-      let subscriber = this.channels[triggerName];
+  public async publish(triggerName: string, payload: any): Promise<void> {
+    let subscriber = this.channels[triggerName];
 
-      while (subscriber) {
-          console.log(`publishing to subscriber ${subscriber.subId}`);
-        subscriber.onMessage(payload);
-        subscriber = subscriber.next;
-      }
-
-      resolve();
-    });
+    while (subscriber) {
+      await subscriber.onMessage(payload);
+      subscriber = subscriber.next;
+    }
   }
 
-  public subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number> {
+  public async subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number> {
     return new Promise((resolve) => {
       const subId = this.subId++;
 
       if (!this.channels[triggerName]) {
-          console.log(`subscribing for ${subId}`);
         this.channels[triggerName] = {
           subId,
           onMessage,
@@ -52,7 +46,7 @@ export default class MockPubSubEngine extends PubSubEngine {
         };
       }
 
-      return subId;
+      resolve(subId);
     });
   }
 

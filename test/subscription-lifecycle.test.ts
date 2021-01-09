@@ -41,7 +41,8 @@ describe('GraphQLSubscriptionManager lifecycle', () => {
 
   const type = 'sub1';
   const channel = 'channel1';
-  const asyncIterator = subscriptionManager.getAsyncIteratorForSubscription({ type }, channel);
+  const subscription = { type };
+  const asyncIterator = subscriptionManager.getAsyncIteratorForSubscription(subscription, channel);
 
   it('Dispatches initial payloads on the subscribe event', async () => {
     const { value, done } = await asyncIterator.next();

@@ -1,4 +1,4 @@
-import { PubSubEngine } from 'graphql-subscriptions';
+import PubSubEngine from './pubsub/pubsub-engine';
 
 import Simplex from './simplex';
 import BatchedSimplex from './batched-simplex';
