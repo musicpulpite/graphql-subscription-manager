@@ -5,6 +5,12 @@ The original motivation for this project was to establish a simpler abstraction 
 In this system, there is not an easy one-to-one correspondence between PubSub messages and subscription payloads and, on top of that, several different subscriptions may be processing messages from the same topic/channel that all need to be aware of each other.
 By providing a wrapper class around the PubSubEngine instance, we can process pubsub messages in unison for all active subscriptions and provide the semblances of a subscription lifecycle.
 
+## Implementation
+This module is to be used specifically with Apollo GraphQL's Node.js implementation:
+1. The core specification for subscriptions with Apollo GraphQL is here: https://www.apollographql.com/docs/react/data/subscriptions/  
+2. The Apollo respository for setting up a websocket client/server for GraphQL subscription payloads is here: https://github.com/apollographql/subscriptions-transport-ws
+3. This module borrows ideas from this repo for consuming PubSubEngine callbacks using an async iterator: https://github.com/apollographql/graphql-subscriptions
+
 ## Benefits
 1. Initial payloads on subscribe (no more Apollo `subscribeToMore`: https://www.apollographql.com/docs/react/data/subscriptions/#subscribing-to-updates-for-a-query)
 2. Optional payload batching (see `GraphQLSubscriptionManager::getBatchedAsyncIteratorForSubscription`)
